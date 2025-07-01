@@ -6,6 +6,8 @@ namespace Ameax\AmApi\Mappers;
 
 class CustomerMapper
 {
+    private array $data = [];
+
     private array $fieldMapping = [
         'company_name' => 'name1',
         'postal_code' => 'plz',
@@ -14,53 +16,49 @@ class CustomerMapper
         'phone' => 'tel',
     ];
 
-    public function mapToApi(array $data): array
+    public static function make(): self
     {
-        $result = [];
-
-        // Special handling for street address (combine route and house_number)
-        if (isset($data['route'])) {
-            $strasse = $data['route'];
-
-            if (isset($data['house_number'])) {
-                $strasse .= ' ' . $data['house_number'];
-            }
-
-            $result['strasse'] = $strasse;
-        }
-
-        // Map fields using the mapping
-        foreach ($this->fieldMapping as $from => $to) {
-            if (isset($data[$from])) {
-                $result[$to] = $data[$from];
-            }
-        }
-
-        // Copy fields that keep the same name
-        foreach (['email', 'fax'] as $directField) {
-            if (isset($data[$directField])) {
-                $result[$directField] = $data[$directField];
-            }
-        }
-
-        // Copy any remaining fields that don't need mapping
-        foreach ($data as $key => $value) {
-            if (!isset($result[$key]) && !array_key_exists($key, $this->fieldMapping) && !in_array($key, ['route', 'house_number'])) {
-                $result[$key] = $value;
-            }
-        }
-
-        return $result;
+        return new self();
     }
 
-    public function mapFromApi(array $data): array
+    public function setData(array $data): self
+    {
+        foreach ($data as $key => $value) {
+            // Handle special case for street address
+            if ($key === 'route') {
+                $this->data['strasse'] = isset($data['house_number']) 
+                    ? $value . ' ' . $data['house_number']
+                    : $value;
+                continue;
+            }
+            
+            if ($key === 'house_number') {
+                continue; // Already handled with route
+            }
+
+            // Apply field mapping if exists
+            if (isset($this->fieldMapping[$key])) {
+                $this->data[$this->fieldMapping[$key]] = $value;
+            } else {
+                // Pass through unmapped fields
+                $this->data[$key] = $value;
+            }
+        }
+
+        return $this;
+    }
+
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
+    public static function fromApiResponse(array $apiData): array
     {
         $result = [];
+        $reverseMapping = array_flip((new self())->fieldMapping);
 
-        // Reverse mapping
-        $reverseMapping = array_flip($this->fieldMapping);
-
-        foreach ($data as $key => $value) {
+        foreach ($apiData as $key => $value) {
             if (isset($reverseMapping[$key])) {
                 $result[$reverseMapping[$key]] = $value;
             } else {
@@ -69,8 +67,8 @@ class CustomerMapper
         }
 
         // Special handling for street address
-        if (isset($result['strasse'])) {
-            $parts = explode(' ', $result['strasse'], 2);
+        if (isset($apiData['strasse'])) {
+            $parts = explode(' ', $apiData['strasse'], 2);
             $result['route'] = $parts[0];
             if (isset($parts[1])) {
                 $result['house_number'] = $parts[1];

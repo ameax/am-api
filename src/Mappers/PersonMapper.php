@@ -6,11 +6,15 @@ namespace Ameax\AmApi\Mappers;
 
 class PersonMapper
 {
+    private array $data = [];
+
     private array $fieldMapping = [
         'honorifics' => 'titel',
         'firstname' => 'vorname',
         'lastname' => 'nachname',
         'phone' => 'tel',
+        'mobile' => 'mobil',
+        'department' => 'abteilung',
     ];
 
     private array $genderMapping = [
@@ -19,40 +23,50 @@ class PersonMapper
         'other' => 'Herr',
     ];
 
-    public function mapToApi(array $data): array
+    public static function make(): self
     {
-        $result = [];
-
-        // Handle gender field
-        if (isset($data['gender'])) {
-            $result['anrede'] = $this->mapGender($data['gender']);
-        }
-
-        // Map fields using the mapping
-        foreach ($this->fieldMapping as $from => $to) {
-            if (isset($data[$from])) {
-                $result[$to] = $data[$from];
-            }
-        }
-
-        // Copy fields that keep the same name
-        foreach (['customer_id', 'email', 'fax', 'position', 'persontype_id', 'mobil', 'abteilung'] as $directField) {
-            if (isset($data[$directField])) {
-                $result[$directField] = $data[$directField];
-            }
-        }
-
-        return $result;
+        return new self();
     }
 
-    public function mapFromApi(array $data): array
+    public function setData(array $data): self
+    {
+        foreach ($data as $key => $value) {
+            // Handle gender transformation
+            if ($key === 'gender') {
+                $this->data['anrede'] = $this->genderMapping[strtolower($value)] ?? 'Herr';
+                continue;
+            }
+
+            // Apply field mapping if exists
+            if (isset($this->fieldMapping[$key])) {
+                $this->data[$this->fieldMapping[$key]] = $value;
+            } else {
+                // Pass through unmapped fields
+                $this->data[$key] = $value;
+            }
+        }
+
+        return $this;
+    }
+
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
+    public static function fromApiResponse(array $apiData): array
     {
         $result = [];
+        $reverseMapping = array_flip((new self())->fieldMapping);
+        $reverseGenderMapping = array_flip((new self())->genderMapping);
 
-        // Reverse mapping
-        $reverseMapping = array_flip($this->fieldMapping);
+        foreach ($apiData as $key => $value) {
+            // Handle gender field
+            if ($key === 'anrede') {
+                $result['gender'] = $reverseGenderMapping[$value] ?? 'other';
+                continue;
+            }
 
-        foreach ($data as $key => $value) {
             if (isset($reverseMapping[$key])) {
                 $result[$reverseMapping[$key]] = $value;
             } else {
@@ -60,48 +74,6 @@ class PersonMapper
             }
         }
 
-        // Handle gender field
-        if (isset($data['anrede'])) {
-            $result['gender'] = $this->mapGenderFromApi($data['anrede']);
-            unset($result['anrede']);
-        }
-
         return $result;
-    }
-
-    private function mapGender(mixed $gender): string
-    {
-        // Handle enum objects
-        if (is_object($gender)) {
-            $reflection = new \ReflectionClass($gender);
-            
-            if ($reflection->hasMethod('value') || $reflection->hasProperty('value')) {
-                $enumValue = method_exists($gender, '__toString')
-                    ? (string) $gender->__toString()
-                    : 'male';
-
-                // Extract gender from enum string representation
-                if (stripos($enumValue, 'male') !== false && stripos($enumValue, 'female') === false) {
-                    $gender = 'male';
-                } elseif (stripos($enumValue, 'female') !== false) {
-                    $gender = 'female';
-                } else {
-                    $gender = 'other';
-                }
-            }
-        }
-
-        // Handle string values
-        if (is_string($gender)) {
-            $gender = strtolower($gender);
-        }
-
-        return $this->genderMapping[$gender] ?? 'Herr';
-    }
-
-    private function mapGenderFromApi(string $anrede): string
-    {
-        $reverseGenderMapping = array_flip($this->genderMapping);
-        return $reverseGenderMapping[$anrede] ?? 'other';
     }
 }

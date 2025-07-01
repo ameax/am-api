@@ -8,34 +8,17 @@ This is a PHP package for interacting with the AM API. It provides a framework-a
 
 ## Package Architecture
 
-The package follows a modular design pattern with one class per API action:
+The package follows a fluent resource-based design pattern:
 
 ```
 src/
-├── AmApi.php                      # Main API client class that loads actions
-├── Actions/                       # One class per API action
-│   ├── AbstractAction.php         # Base action class
-│   ├── Account/
-│   │   ├── AddAccount.php
-│   │   ├── GetAccount.php
-│   │   ├── UpdateAccount.php
-│   │   ├── DeleteAccount.php
-│   │   ├── SearchAccountByEmail.php
-│   │   └── ExecuteAccountLogin.php
-│   ├── Customer/
-│   │   ├── AddCustomer.php
-│   │   ├── GetCustomer.php
-│   │   ├── UpdateCustomer.php
-│   │   └── DeleteCustomer.php
-│   ├── Person/
-│   │   ├── AddPerson.php
-│   │   ├── GetPerson.php
-│   │   ├── UpdatePerson.php
-│   │   └── DeletePerson.php
-│   └── Relation/
-│       ├── AddCustomerRelation.php
-│       ├── GetCustomerRelation.php
-│       └── DeleteCustomerRelation.php
+├── AmApi.php                      # Main API client with resource accessors
+├── Resources/                     # Resource classes for each API endpoint group
+│   ├── AccountResource.php        # Account operations
+│   ├── CustomerResource.php       # Customer operations
+│   ├── PersonResource.php         # Person operations
+│   ├── RelationResource.php       # Customer relation operations
+│   └── UserResource.php           # User operations
 ├── Config/
 │   └── Config.php                 # Configuration management
 ├── Exceptions/
@@ -70,48 +53,77 @@ composer test
 ## Key Design Principles
 
 1. **Framework Agnostic**: No Laravel or other framework dependencies. Pure PHP implementation.
-2. **Single Responsibility**: Each API action has its own class.
-3. **Lazy Loading**: Actions are loaded on-demand when accessed.
-4. **Configuration-Based**: All settings (URL, auth) passed via configuration, not pulled from environment.
-5. **Type Safety**: Use PHP 8.3+ features like typed properties and return types.
+2. **Fluent Interface**: Natural method chaining: `$api->customers()->add(...)`
+3. **Strong Typing**: No mixed return types - only primitives (int, bool, array, ?int, etc.)
+4. **Lazy Loading**: Resources are instantiated only when accessed.
+5. **Configuration-Based**: All settings (URL, auth) passed via configuration.
 6. **Error Handling**: Consistent error handling with custom exceptions.
 7. **Separation of Concerns**: Mappers handle field transformations, traits provide shared functionality.
 
 ## Implementation Guidelines
 
-### Adding New Actions
+### Adding New API Methods
 
-1. Create a new class in the appropriate `src/Actions/` subdirectory extending `AbstractAction`
-2. Implement the `execute()` method for the specific API call
-3. Register the action in `AmApi::registerActions()` if needed
+1. Add the method to the appropriate Resource class in `src/Resources/`
+2. Define explicit return types (int, bool, array, etc.)
+3. Use traits for common functionality
 4. If field mapping is required, create or update the appropriate Mapper class
 
-### Action Class Structure
+### Resource Class Structure
 
 ```php
-namespace Ameax\AmApi\Actions\Customer;
+namespace Ameax\AmApi\Resources;
 
-use Ameax\AmApi\Actions\AbstractAction;
-use Ameax\AmApi\Mappers\CustomerMapper;
+use Ameax\AmApi\Http\AmApiClient;
+use Ameax\AmApi\Traits\HandlesApiResponses;
 
-class AddCustomer extends AbstractAction
+class CustomerResource
 {
+    use HandlesApiResponses;
+
     public function __construct(
-        AmApiClient $client,
-        private readonly CustomerMapper $mapper
+        private readonly AmApiClient $client
     ) {
-        parent::__construct($client);
     }
 
-    public function execute(array $data): int
+    public function add(array $data): int
     {
-        $mappedData = $this->mapper->mapToApi($data);
-        $response = $this->post('addCustomer', [], $mappedData);
+        $response = $this->client->post('addCustomer', [], $data);
         
         $this->checkForErrors($response);
-        return $this->extractResult($response);
+        return (int) $this->extractResult($response);
+    }
+
+    public function get(int $customerId): array
+    {
+        return $this->client->get('getCustomer', [
+            'customer_id' => $customerId
+        ]);
     }
 }
+```
+
+### Using Mappers
+
+```php
+use Ameax\AmApi\Mappers\CustomerMapper;
+
+// Map your data to API format
+$apiData = CustomerMapper::make()
+    ->setData([
+        'company_name' => 'ACME Corp',
+        'route' => 'Main Street',
+        'house_number' => '42',
+        'postal_code' => '10115',
+        'locality' => 'Berlin'
+    ])
+    ->getData();
+
+$customerId = $api->customers()->add($apiData);
+
+// Map response data back to your format
+$apiResponse = $api->customers()->get($customerId);
+$yourData = CustomerMapper::fromApiResponse($apiResponse);
 ```
 
 ### Response Handling
