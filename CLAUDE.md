@@ -28,8 +28,6 @@ src/
 ├── Mappers/                       # Field mapping classes
 │   ├── CustomerMapper.php
 │   └── PersonMapper.php
-├── Services/                      # Shared services
-│   └── ResponseParser.php
 └── Traits/                        # Shared functionality
     └── HandlesApiResponses.php
 ```
