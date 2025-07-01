@@ -26,7 +26,7 @@ final class Config
             throw new \InvalidArgumentException('Username and password are required');
         }
 
-        if (!filter_var($this->apiUrl, FILTER_VALIDATE_URL)) {
+        if (! filter_var($this->apiUrl, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException('Invalid API URL format');
         }
     }

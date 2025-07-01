@@ -10,8 +10,7 @@ class UserResource
 {
     public function __construct(
         private readonly AmApiClient $client
-    ) {
-    }
+    ) {}
 
     public function list(): array
     {

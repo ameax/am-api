@@ -7,17 +7,19 @@ namespace Ameax\AmApi\Exceptions;
 class ApiException extends \Exception
 {
     private ?array $errors = null;
+
     private ?int $statusCode = null;
+
     private ?array $response = null;
 
     public static function fromResponse(array $response, ?int $statusCode = null): self
     {
         $errors = self::extractErrors($response);
         $message = 'API request failed';
-        
-        if (!empty($errors)) {
-            $errorMessages = array_map(fn($error) => $error['message'] ?? 'Unknown error', $errors);
-            $message .= ': ' . implode(', ', $errorMessages);
+
+        if (! empty($errors)) {
+            $errorMessages = array_map(fn ($error) => $error['message'] ?? 'Unknown error', $errors);
+            $message .= ': '.implode(', ', $errorMessages);
         }
 
         $exception = new self($message);

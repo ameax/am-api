@@ -13,8 +13,7 @@ class RelationResource
 
     public function __construct(
         private readonly AmApiClient $client
-    ) {
-    }
+    ) {}
 
     public function add(int $sourceCustomerId, int $targetCustomerId, string $relation): int
     {
@@ -25,8 +24,9 @@ class RelationResource
         ];
 
         $response = $this->client->post('addCustomerRelation', [], $data);
-        
+
         $this->checkForErrors($response);
+
         return (int) $this->extractResult($response);
     }
 
@@ -46,6 +46,7 @@ class RelationResource
     public function delete(int $relationId): bool
     {
         $response = $this->client->get('delCustomerRelation', ['relation_id' => $relationId]);
+
         return $this->isSuccess($response);
     }
 }

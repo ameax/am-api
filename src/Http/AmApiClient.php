@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Ameax\AmApi\Http;
 
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\GuzzleException;
 use Ameax\AmApi\Config\Config;
 use Ameax\AmApi\Exceptions\ApiException;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
 
 final class AmApiClient
 {
     private GuzzleClient $httpClient;
+
     private ?array $lastRawResponse = null;
+
     private ?int $lastStatusCode = null;
 
     public function __construct(
@@ -44,7 +46,7 @@ final class AmApiClient
         try {
             $options = [];
 
-            if (!empty($data) && in_array(strtoupper($method), ['POST', 'PUT', 'PATCH'])) {
+            if (! empty($data) && in_array(strtoupper($method), ['POST', 'PUT', 'PATCH'])) {
                 // Check if we have file uploads
                 $hasFiles = false;
                 foreach ($data as $value) {
@@ -83,7 +85,7 @@ final class AmApiClient
             return $this->parseResponse($response);
         } catch (GuzzleException $e) {
             throw new ApiException(
-                'HTTP request failed: ' . $e->getMessage(),
+                'HTTP request failed: '.$e->getMessage(),
                 $e->getCode(),
                 $e
             );
@@ -93,8 +95,8 @@ final class AmApiClient
     public function get(string $endpoint, array $params = []): array
     {
         $url = $endpoint;
-        if (!empty($params)) {
-            $url .= '?' . http_build_query($params);
+        if (! empty($params)) {
+            $url .= '?'.http_build_query($params);
         }
 
         return $this->request('GET', $url);
@@ -103,8 +105,8 @@ final class AmApiClient
     public function post(string $endpoint, array $params, array $data = []): array
     {
         $url = $endpoint;
-        if (!empty($params)) {
-            $url .= '?' . http_build_query($params);
+        if (! empty($params)) {
+            $url .= '?'.http_build_query($params);
         }
 
         return $this->request('POST', $url, $data);
@@ -115,9 +117,10 @@ final class AmApiClient
         $this->lastStatusCode = $response->getStatusCode();
 
         $bodyContent = $response->getBody()->getContents();
-        
+
         if (empty($bodyContent)) {
             $this->lastRawResponse = [];
+
             return [];
         }
 
@@ -125,7 +128,7 @@ final class AmApiClient
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new ApiException(
-                'Invalid JSON response: ' . json_last_error_msg()
+                'Invalid JSON response: '.json_last_error_msg()
             );
         }
 

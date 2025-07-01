@@ -25,7 +25,7 @@ trait HandlesApiResponses
             return $response['response']['result'];
         }
 
-        throw new ApiException('Missing result in API response: ' . json_encode($response));
+        throw new ApiException('Missing result in API response: '.json_encode($response));
     }
 
     protected function checkForErrors(array $response): void

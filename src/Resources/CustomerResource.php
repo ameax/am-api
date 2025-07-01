@@ -13,21 +13,21 @@ class CustomerResource
 
     public function __construct(
         private readonly AmApiClient $client
-    ) {
-    }
+    ) {}
 
     public function add(array $data): int
     {
         $response = $this->client->post('addCustomer', [], $data);
-        
+
         $this->checkForErrors($response);
+
         return (int) $this->extractResult($response);
     }
 
     public function get(int $customerId, array $includes = []): array
     {
         $params = ['customer_id' => $customerId];
-        
+
         // Add optional includes
         $availableIncludes = ['files', 'images', 'faktura', 'cat', 'commission', 'person', 'project', 'relation'];
         foreach ($availableIncludes as $include) {
@@ -35,20 +35,21 @@ class CustomerResource
                 $params[$include] = 1;
             }
         }
-        
+
         return $this->client->get('getCustomer', $params);
     }
 
     public function update(int $customerId, array $data): bool
     {
         $response = $this->client->post('updateCustomer', ['customer_id' => $customerId], $data);
-        
+
         return $this->isSuccess($response);
     }
 
     public function delete(int $customerId): bool
     {
         $response = $this->client->get('delCustomer', ['customer_id' => $customerId]);
+
         return $this->isSuccess($response);
     }
 
@@ -99,5 +100,127 @@ class CustomerResource
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    public function getHistory(array $params = []): array
+    {
+        return $this->client->get('getCustomerHistory', $params);
+    }
+
+    public function addCategory(int $customerId, int $categoryId): bool
+    {
+        $response = $this->client->post('addCustomerCat', [], [
+            'customer_id' => $customerId,
+            'cat_id' => $categoryId,
+        ]);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function removeCategory(int $customerId, int $categoryId): bool
+    {
+        $response = $this->client->post('delCustomerCat', [], [
+            'customer_id' => $customerId,
+            'cat_id' => $categoryId,
+        ]);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function addProject(int $customerId, array $projectData): int
+    {
+        $projectData['customer_id'] = $customerId;
+        $response = $this->client->post('addCustomerProject', [], $projectData);
+
+        $this->checkForErrors($response);
+
+        return (int) $this->extractResult($response);
+    }
+
+    public function updateProject(int $projectId, array $projectData): bool
+    {
+        $response = $this->client->post('updateCustomerProject', ['project_id' => $projectId], $projectData);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function deleteProject(int $projectId): bool
+    {
+        $response = $this->client->post('delCustomerProject', [], [
+            'project_id' => $projectId,
+        ]);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function addRelation(int $customerId, int $relatedCustomerId, string $relationType = ''): int
+    {
+        $response = $this->client->post('addCustomerRelation', [], [
+            'customer_id' => $customerId,
+            'customer2_id' => $relatedCustomerId,
+            'type' => $relationType,
+        ]);
+
+        $this->checkForErrors($response);
+
+        return (int) $this->extractResult($response);
+    }
+
+    public function getRelations(int $customerId): array
+    {
+        return $this->client->get('getCustomerRelation', [
+            'customer_id' => $customerId,
+        ]);
+    }
+
+    public function deleteRelation(int $relationId): bool
+    {
+        $response = $this->client->post('delCustomerRelation', [], [
+            'relation_id' => $relationId,
+        ]);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function setReceiptDefaults(int $customerId, array $defaults): bool
+    {
+        $defaults['customer_id'] = $customerId;
+        $response = $this->client->post('addCustomerReceipt', [], $defaults);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function updateReceiptDefaults(int $customerId, array $defaults): bool
+    {
+        $defaults['customer_id'] = $customerId;
+        $response = $this->client->post('updateCustomerReceipt', [], $defaults);
+
+        $this->checkForErrors($response);
+
+        return true;
+    }
+
+    public function executeProceeding(int $customerId, int $proceedingId): bool
+    {
+        $response = $this->client->post('executeCustomerProceeding', [], [
+            'customer_id' => $customerId,
+            'proceeding_id' => $proceedingId,
+        ]);
+
+        $this->checkForErrors($response);
+
+        return true;
     }
 }

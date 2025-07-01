@@ -18,7 +18,7 @@ class CustomerMapper
 
     public static function make(): self
     {
-        return new self();
+        return new self;
     }
 
     public function setData(array $data): self
@@ -26,12 +26,13 @@ class CustomerMapper
         foreach ($data as $key => $value) {
             // Handle special case for street address
             if ($key === 'route') {
-                $this->data['strasse'] = isset($data['house_number']) 
-                    ? $value . ' ' . $data['house_number']
+                $this->data['strasse'] = isset($data['house_number'])
+                    ? $value.' '.$data['house_number']
                     : $value;
+
                 continue;
             }
-            
+
             if ($key === 'house_number') {
                 continue; // Already handled with route
             }
@@ -56,7 +57,7 @@ class CustomerMapper
     public static function fromApiResponse(array $apiData): array
     {
         $result = [];
-        $reverseMapping = array_flip((new self())->fieldMapping);
+        $reverseMapping = array_flip((new self)->fieldMapping);
 
         foreach ($apiData as $key => $value) {
             if (isset($reverseMapping[$key])) {

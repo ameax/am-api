@@ -13,33 +13,35 @@ class AccountResource
 
     public function __construct(
         private readonly AmApiClient $client
-    ) {
-    }
+    ) {}
 
     public function add(array $data): int
     {
         $response = $this->client->post('addAccount', [], $data);
-        
+
         $this->checkForErrors($response);
+
         return (int) $this->extractResult($response);
     }
 
     public function get(int $accountId): array
     {
         return $this->client->get('getAccount', [
-            'account_id' => $accountId
+            'account_id' => $accountId,
         ]);
     }
 
     public function update(int $accountId, array $data): bool
     {
         $response = $this->client->post('updateAccount', ['account_id' => $accountId], $data);
+
         return $this->isSuccess($response);
     }
 
     public function delete(int $accountId): bool
     {
         $response = $this->client->get('delAccount', ['account_id' => $accountId]);
+
         return $this->isSuccess($response);
     }
 
@@ -80,7 +82,7 @@ class AccountResource
     {
         $result = $this->searchByEmail($email);
 
-        if (empty($result) || !isset($result['result']) || empty($result['result'])) {
+        if (empty($result) || ! isset($result['result']) || empty($result['result'])) {
             return false;
         }
 
