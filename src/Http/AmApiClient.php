@@ -45,7 +45,37 @@ final class AmApiClient
             $options = [];
 
             if (!empty($data) && in_array(strtoupper($method), ['POST', 'PUT', 'PATCH'])) {
-                $options['form_params'] = $data;
+                // Check if we have file uploads
+                $hasFiles = false;
+                foreach ($data as $value) {
+                    if ($value instanceof \CURLFile) {
+                        $hasFiles = true;
+                        break;
+                    }
+                }
+
+                if ($hasFiles) {
+                    // Use multipart for file uploads
+                    $multipart = [];
+                    foreach ($data as $key => $value) {
+                        if ($value instanceof \CURLFile) {
+                            $multipart[] = [
+                                'name' => $key,
+                                'contents' => fopen($value->getFilename(), 'r'),
+                                'filename' => $value->getPostFilename() ?: basename($value->getFilename()),
+                            ];
+                        } else {
+                            $multipart[] = [
+                                'name' => $key,
+                                'contents' => $value,
+                            ];
+                        }
+                    }
+                    $options['multipart'] = $multipart;
+                } else {
+                    // Use form_params for regular data
+                    $options['form_params'] = $data;
+                }
             }
 
             $response = $this->httpClient->request($method, $endpoint, $options);

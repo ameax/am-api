@@ -24,11 +24,19 @@ class CustomerResource
         return (int) $this->extractResult($response);
     }
 
-    public function get(int $customerId): array
+    public function get(int $customerId, array $includes = []): array
     {
-        return $this->client->get('getCustomer', [
-            'customer_id' => $customerId
-        ]);
+        $params = ['customer_id' => $customerId];
+        
+        // Add optional includes
+        $availableIncludes = ['files', 'images', 'faktura', 'cat', 'commission', 'person', 'project', 'relation'];
+        foreach ($availableIncludes as $include) {
+            if (in_array($include, $includes)) {
+                $params[$include] = 1;
+            }
+        }
+        
+        return $this->client->get('getCustomer', $params);
     }
 
     public function update(int $customerId, array $data): bool
@@ -42,6 +50,16 @@ class CustomerResource
     {
         $response = $this->client->get('delCustomer', ['customer_id' => $customerId]);
         return $this->isSuccess($response);
+    }
+
+    public function search(array $filters): array
+    {
+        return $this->client->get('searchCustomer', $filters);
+    }
+
+    public function load(array $filters): array
+    {
+        return $this->client->get('loadCustomer', $filters);
     }
 
     /**

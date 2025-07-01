@@ -39,3 +39,6 @@ rector.php
 
 # OS
 Thumbs.db
+
+# Temporary files
+tmp/

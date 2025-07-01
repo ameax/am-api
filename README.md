@@ -97,8 +97,23 @@ try {
 ### More Examples
 
 ```php
-// Get customer - returns array
-$customer = $api->customers()->get(12345);
+// Get customer with related data - returns array
+$customer = $api->customers()->get(12345, ['files', 'person', 'project']);
+
+// Search customers
+$results = $api->customers()->search([
+    'name1_like' => 'Example',
+    'add_dt_from' => '2024-01-01',
+    'add_dt_till' => '2024-12-31'
+]);
+
+// Load customer (alternative search method)
+$results = $api->customers()->load([
+    'name1_like' => 'Example',
+    'cat' => 1,
+    'files' => 1,
+    'images' => 1
+]);
 
 // Delete customer - returns bool
 $deleted = $api->customers()->delete(12345);
@@ -128,6 +143,15 @@ $personId = $api->persons()->add($personData);
 // Relation operations
 $relationId = $api->relations()->add(12345, 67890, 'invoiceaddress');
 $relations = $api->relations()->get(12345);
+
+// File upload (requires a FileResource to be implemented)
+$fileData = [
+    'mod_id' => 12345,
+    'mod' => 'customer',
+    'field' => 'xcu_documents',
+    'file' => new \CURLFile('/path/to/file.pdf', 'application/pdf', 'document.pdf')
+];
+// $result = $api->files()->upload($fileData);
 ```
 
 ## Field Mapping
@@ -175,6 +199,23 @@ $yourData = CustomerMapper::fromApiResponse($apiResponse);
 | `gender` | `anrede` | Values: male→Herr, female→Frau |
 
 Fields like `email` and `fax` are passed through without mapping. You can also use the API field names directly without any mapping.
+
+### Custom Fields
+
+The API supports custom fields prefixed with module codes:
+- `xcu_` - Customer custom fields
+- `xpe_` - Person custom fields
+- Other module-specific prefixes
+
+Example:
+```php
+$customerData = [
+    'name1' => 'Company Name',
+    'xcu_eine_weitere_adresse__street' => 'Custom Street',
+    'xcu_eine_weitere_adresse__zipcode' => '12345',
+    'xcu_eine_weitere_adresse__city' => 'Custom City'
+];
+```
 
 ## Architecture
 
