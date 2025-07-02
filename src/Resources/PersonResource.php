@@ -21,7 +21,14 @@ class PersonResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with person_id field
+        if (is_array($result) && isset($result['person_id'])) {
+            return (int) $result['person_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $personId): array

@@ -33,7 +33,14 @@ class ProjectResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with projecttype_id field
+        if (is_array($result) && isset($result['projecttype_id'])) {
+            return (int) $result['projecttype_id'];
+        }
+
+        return (int) $result;
     }
 
     public function updateProjectType(int $projectTypeId, array $data): bool

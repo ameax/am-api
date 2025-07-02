@@ -21,7 +21,14 @@ class ReminderResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with remind_id field
+        if (is_array($result) && isset($result['remind_id'])) {
+            return (int) $result['remind_id'];
+        }
+
+        return (int) $result;
     }
 
     public function update(int $remindId, array $data): bool

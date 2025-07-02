@@ -21,7 +21,14 @@ class CustomerResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with customer_id field
+        if (is_array($result) && isset($result['customer_id'])) {
+            return (int) $result['customer_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $customerId, array $includes = []): array
@@ -138,7 +145,14 @@ class CustomerResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with project_id field
+        if (is_array($result) && isset($result['project_id'])) {
+            return (int) $result['project_id'];
+        }
+
+        return (int) $result;
     }
 
     public function updateProject(int $projectId, array $projectData): bool
@@ -171,7 +185,14 @@ class CustomerResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with relation_id field
+        if (is_array($result) && isset($result['relation_id'])) {
+            return (int) $result['relation_id'];
+        }
+
+        return (int) $result;
     }
 
     public function getRelations(int $customerId): array

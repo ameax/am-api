@@ -21,7 +21,14 @@ class TermResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with term_id field
+        if (is_array($result) && isset($result['term_id'])) {
+            return (int) $result['term_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $termId): array

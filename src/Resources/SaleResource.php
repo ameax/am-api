@@ -21,7 +21,14 @@ class SaleResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with sale_id field
+        if (is_array($result) && isset($result['sale_id'])) {
+            return (int) $result['sale_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $saleId, bool $includeFiles = false, bool $includeImages = false, bool $includeAudios = false, bool $includeVideos = false): array

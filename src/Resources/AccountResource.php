@@ -21,7 +21,14 @@ class AccountResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with account_id field
+        if (is_array($result) && isset($result['account_id'])) {
+            return (int) $result['account_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $accountId): array

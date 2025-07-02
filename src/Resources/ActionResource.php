@@ -21,7 +21,14 @@ class ActionResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with action_id field
+        if (is_array($result) && isset($result['action_id'])) {
+            return (int) $result['action_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(string $dateFrom, string $dateTill): array
@@ -61,7 +68,14 @@ class ActionResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with file_id field
+        if (is_array($result) && isset($result['file_id'])) {
+            return (int) $result['file_id'];
+        }
+
+        return (int) $result;
     }
 
     public function deleteFile(int $fileId): bool

@@ -21,7 +21,14 @@ class NoticeResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with notice_id field
+        if (is_array($result) && isset($result['notice_id'])) {
+            return (int) $result['notice_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $noticeId): array

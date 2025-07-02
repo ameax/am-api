@@ -21,7 +21,14 @@ class TaskResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with task_id field
+        if (is_array($result) && isset($result['task_id'])) {
+            return (int) $result['task_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $taskId): array

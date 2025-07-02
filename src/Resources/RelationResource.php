@@ -27,7 +27,14 @@ class RelationResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with relation_id field
+        if (is_array($result) && isset($result['relation_id'])) {
+            return (int) $result['relation_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $customerId, ?string $relation = null): array

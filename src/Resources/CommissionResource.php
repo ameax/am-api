@@ -21,7 +21,14 @@ class CommissionResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with commission_id field
+        if (is_array($result) && isset($result['commission_id'])) {
+            return (int) $result['commission_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(array $params = []): array

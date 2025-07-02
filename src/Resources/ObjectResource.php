@@ -21,7 +21,14 @@ class ObjectResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with object_id field
+        if (is_array($result) && isset($result['object_id'])) {
+            return (int) $result['object_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $objectId, int $indexId, bool $withAction = false, bool $withRemind = false): array
@@ -88,7 +95,14 @@ class ObjectResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with object_id field
+        if (is_array($result) && isset($result['object_id'])) {
+            return (int) $result['object_id'];
+        }
+
+        return (int) $result;
     }
 
     public function updateWithCustomerLink(array $data): bool
@@ -116,7 +130,14 @@ class ObjectResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with customer_object_id field
+        if (is_array($result) && isset($result['customer_object_id'])) {
+            return (int) $result['customer_object_id'];
+        }
+
+        return (int) $result;
     }
 
     public function getCustomerLink(int $objectId, int $customerObjectId, bool $withAction = false, bool $withRemind = false): array

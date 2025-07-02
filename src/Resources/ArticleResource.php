@@ -21,7 +21,14 @@ class ArticleResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with article_id field
+        if (is_array($result) && isset($result['article_id'])) {
+            return (int) $result['article_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $nodeId): array

@@ -21,7 +21,14 @@ class CategoryResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with cat_id field
+        if (is_array($result) && isset($result['cat_id'])) {
+            return (int) $result['cat_id'];
+        }
+
+        return (int) $result;
     }
 
     public function update(int $categoryId, array $data): bool

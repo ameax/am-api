@@ -21,7 +21,14 @@ class AgentResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with agent_id field
+        if (is_array($result) && isset($result['agent_id'])) {
+            return (int) $result['agent_id'];
+        }
+
+        return (int) $result;
     }
 
     public function list(): array

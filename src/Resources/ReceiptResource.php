@@ -21,7 +21,14 @@ class ReceiptResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with receipt_id field
+        if (is_array($result) && isset($result['receipt_id'])) {
+            return (int) $result['receipt_id'];
+        }
+
+        return (int) $result;
     }
 
     public function get(int $receiptId, bool $includePositions = false, bool $includeTotal = false): array
@@ -77,7 +84,14 @@ class ReceiptResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with receiptpos_id field
+        if (is_array($result) && isset($result['receiptpos_id'])) {
+            return (int) $result['receiptpos_id'];
+        }
+
+        return (int) $result;
     }
 
     public function addArticlePosition(int $receiptId, int $articleId, int $quantity = 1, ?float $discountPercent = null, ?float $priceBase = null): int
@@ -129,7 +143,14 @@ class ReceiptResource
 
         $this->checkForErrors($response);
 
-        return (int) $this->extractResult($response);
+        $result = $this->extractResult($response);
+
+        // Handle array response with file_id field
+        if (is_array($result) && isset($result['file_id'])) {
+            return (int) $result['file_id'];
+        }
+
+        return (int) $result;
     }
 
     public function deleteFile(int $receiptId, int $fileId): bool
@@ -209,18 +230,5 @@ class ReceiptResource
         $this->checkForErrors($response);
 
         return true;
-    }
-
-    public function addTextPosition(int $receiptId, string $text, string $textType = 'plain'): int
-    {
-        $response = $this->client->post('addReceiptTextPos', [], [
-            'receipt_id' => $receiptId,
-            'text_type' => $textType,
-            'article' => $text,
-        ]);
-
-        $this->checkForErrors($response);
-
-        return (int) $this->extractResult($response);
     }
 }
