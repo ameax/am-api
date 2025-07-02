@@ -144,14 +144,28 @@ $personId = $api->persons()->add($personData);
 $relationId = $api->relations()->add(12345, 67890, 'invoiceaddress');
 $relations = $api->relations()->get(12345);
 
-// File upload (requires a FileResource to be implemented)
-$fileData = [
-    'mod_id' => 12345,
-    'mod' => 'customer',
-    'field' => 'xcu_documents',
-    'file' => new \CURLFile('/path/to/file.pdf', 'application/pdf', 'document.pdf')
-];
-// $result = $api->files()->upload($fileData);
+// Object operations with file upload
+$reflection = new ReflectionClass($api);
+$clientProperty = $reflection->getProperty('client');
+$clientProperty->setAccessible(true);
+$client = $clientProperty->getValue($api);
+
+// Create object with customer link
+$response = $client->post('addObjectAndCustomerobject', [], [
+    'object_id' => 1,
+    'customer_id' => 12345,
+    'project_id' => 1,
+    'o_kennung' => 'REF-2024-001'
+]);
+
+if ($response['response']['ack'] === 'ok') {
+    $objectDbId = $response['result']['id'];
+    $indexId = $response['result']['index_id'];
+    
+    // Upload file to object (use database ID, not index_id!)
+    $fileId = $api->files()->uploadToObject(1, $objectDbId, 'o_upload', 
+        '/path/to/file.pdf', 'application/pdf', 'document.pdf');
+}
 ```
 
 ## Field Mapping
