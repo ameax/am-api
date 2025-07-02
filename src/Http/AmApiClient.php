@@ -94,9 +94,10 @@ final class AmApiClient
 
     public function get(string $endpoint, array $params = []): array
     {
-        $url = $endpoint;
+        // For akquisemanager API, the endpoint needs to be passed as apicall parameter
+        $url = '?apicall=' . $endpoint;
         if (! empty($params)) {
-            $url .= '?'.http_build_query($params);
+            $url .= '&'.http_build_query($params);
         }
 
         return $this->request('GET', $url);
@@ -104,9 +105,10 @@ final class AmApiClient
 
     public function post(string $endpoint, array $params, array $data = []): array
     {
-        $url = $endpoint;
+        // For akquisemanager API, the endpoint needs to be passed as apicall parameter
+        $url = '?apicall=' . $endpoint;
         if (! empty($params)) {
-            $url .= '?'.http_build_query($params);
+            $url .= '&'.http_build_query($params);
         }
 
         return $this->request('POST', $url, $data);
@@ -127,6 +129,10 @@ final class AmApiClient
         $result = json_decode($bodyContent, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
+            // Log the actual response for debugging
+            error_log('API Response: ' . substr($bodyContent, 0, 500));
+            error_log('Response Content-Type: ' . $response->getHeader('Content-Type')[0] ?? 'not set');
+            
             throw new ApiException(
                 'Invalid JSON response: '.json_last_error_msg()
             );

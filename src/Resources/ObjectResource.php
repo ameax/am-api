@@ -89,7 +89,7 @@ class ObjectResource
         return (array) $this->extractResult($response);
     }
 
-    public function addWithCustomerLink(array $data): int
+    public function addWithCustomerObject(array $data): array
     {
         $response = $this->client->post('addObjectAndCustomerobject', [], $data);
 
@@ -97,15 +97,20 @@ class ObjectResource
 
         $result = $this->extractResult($response);
 
-        // Handle array response with object_id field
-        if (is_array($result) && isset($result['object_id'])) {
-            return (int) $result['object_id'];
+        // Return the full result array to get all IDs
+        if (is_array($result)) {
+            return $result;
         }
 
-        return (int) $result;
+        // Fallback for unexpected response format
+        return [
+            'id' => (int) $result,
+            'index_id' => 0,
+            'customer_object_id' => 0
+        ];
     }
 
-    public function updateWithCustomerLink(array $data): bool
+    public function updateWithCustomerObject(array $data): bool
     {
         $response = $this->client->post('updateObjectAndCustomerobject', [], $data);
 
@@ -114,7 +119,7 @@ class ObjectResource
         return true;
     }
 
-    public function linkToCustomer(int $objectId, int $indexId, int $customerId, ?int $projectId = null): int
+    public function addCustomerObject(int $objectId, int $indexId, int $customerId, ?int $projectId = null): int
     {
         $data = [
             'object_id' => $objectId,
@@ -140,7 +145,7 @@ class ObjectResource
         return (int) $result;
     }
 
-    public function getCustomerLink(int $objectId, int $customerObjectId, bool $withAction = false, bool $withRemind = false): array
+    public function getCustomerObject(int $objectId, int $customerObjectId, bool $withAction = false, bool $withRemind = false): array
     {
         $data = [
             'object_id' => $objectId,
@@ -152,7 +157,7 @@ class ObjectResource
         return $this->client->post('getCustomerobject', [], $data);
     }
 
-    public function updateCustomerLink(array $data): bool
+    public function updateCustomerObject(array $data): bool
     {
         $response = $this->client->post('updateCustomerobject', [], $data);
 
@@ -161,7 +166,7 @@ class ObjectResource
         return true;
     }
 
-    public function deleteCustomerLink(int $objectId, int $customerObjectId): bool
+    public function deleteCustomerObject(int $objectId, int $customerObjectId): bool
     {
         $response = $this->client->post('delCustomerobject', [], [
             'object_id' => $objectId,
@@ -173,7 +178,7 @@ class ObjectResource
         return true;
     }
 
-    public function searchCustomerLinks(array $filters = []): array
+    public function searchCustomerObjects(array $filters = []): array
     {
         $response = $this->client->post('searchCustomerobject', [], $filters);
 
