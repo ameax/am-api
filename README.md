@@ -144,6 +144,21 @@ $personId = $api->persons()->add($personData);
 $relationId = $api->relations()->add(12345, 67890, 'invoiceaddress');
 $relations = $api->relations()->get(12345);
 
+// Receipt PDF operations
+// First, get the PDF data from the API (includes base64 content and metadata)
+$pdfData = $api->receipts()->getPdfBase64($receiptId, 'Online');
+// Returns: ['receipt_id' => 123, 'pdf_base64' => '...', 'filename' => 'Invoice_123.pdf', 'size' => 45678, 'generated_at' => '2024-01-01 12:00:00']
+
+// Option 1: Decode to binary for direct output
+$pdfContent = $api->receipts()->decodePdf($pdfData);
+header('Content-Type: application/pdf');
+header('Content-Disposition: inline; filename="' . $pdfData['filename'] . '"');
+echo $pdfContent;
+
+// Option 2: Save to file using the helper
+$result = $api->receipts()->savePdfFromData($pdfData, '/path/to/invoices/invoice_123.pdf');
+// Returns: ['filename' => 'Invoice_123.pdf', 'size' => 45678, 'path' => '/path/to/invoices/invoice_123.pdf']
+
 // Object operations with file upload
 $reflection = new ReflectionClass($api);
 $clientProperty = $reflection->getProperty('client');

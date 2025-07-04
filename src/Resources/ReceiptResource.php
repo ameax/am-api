@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ameax\AmApi\Resources;
 
+use Ameax\AmApi\Exceptions\ApiException;
 use Ameax\AmApi\Http\AmApiClient;
 use Ameax\AmApi\Traits\HandlesApiResponses;
 
@@ -230,5 +231,87 @@ class ReceiptResource
         $this->checkForErrors($response);
 
         return true;
+    }
+
+    /**
+     * Get receipt PDF as base64 encoded string
+     *
+     * @param int $receiptId The ID of the receipt
+     * @param string $template PDF template type: "Online" or "Print" (default: "Online")
+     * @return array{receipt_id: int, pdf_base64: string, filename: string, size: int, generated_at: string}
+     * @throws ApiException
+     */
+    public function getPdfBase64(int $receiptId, string $template = 'Online'): array
+    {
+        if (!in_array(strtolower($template), ['online', 'print'], true)) {
+            throw new ApiException('Template must be "Online" or "Print"');
+        }
+
+        $response = $this->client->get('getReceiptPdfBase64', [
+            'receipt_id' => $receiptId,
+            'template' => $template,
+        ]);
+
+        $this->checkForErrors($response);
+
+        $result = $this->extractResult($response);
+        if (!is_array($result)) {
+            throw new ApiException('Invalid response format');
+        }
+
+        return $result;
+    }
+
+    /**
+     * Decode base64 PDF content to binary string
+     * Helper method that works with the response from getPdfBase64()
+     *
+     * @param array $pdfData Response from getPdfBase64() containing pdf_base64
+     * @return string Binary PDF content
+     * @throws ApiException
+     */
+    public function decodePdf(array $pdfData): string
+    {
+        if (!isset($pdfData['pdf_base64'])) {
+            throw new ApiException('PDF content not found in response');
+        }
+
+        $pdfContent = base64_decode($pdfData['pdf_base64'], true);
+        if ($pdfContent === false) {
+            throw new ApiException('Failed to decode PDF content');
+        }
+
+        return $pdfContent;
+    }
+
+    /**
+     * Save PDF content to file
+     * Helper method that works with the response from getPdfBase64()
+     *
+     * @param array $pdfData Response from getPdfBase64() containing pdf_base64
+     * @param string $filePath Path where the PDF should be saved
+     * @return array{filename: string, size: int, path: string}
+     * @throws ApiException
+     */
+    public function savePdfFromData(array $pdfData, string $filePath): array
+    {
+        $pdfContent = $this->decodePdf($pdfData);
+
+        $directory = dirname($filePath);
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0777, true)) {
+                throw new ApiException('Failed to create directory: ' . $directory);
+            }
+        }
+
+        if (file_put_contents($filePath, $pdfContent) === false) {
+            throw new ApiException('Failed to save PDF to file: ' . $filePath);
+        }
+
+        return [
+            'filename' => $pdfData['filename'] ?? basename($filePath),
+            'size' => $pdfData['size'] ?? strlen($pdfContent),
+            'path' => $filePath,
+        ];
     }
 }
