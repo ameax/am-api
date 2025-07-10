@@ -15,17 +15,51 @@ composer require ameax/am-api
 
 ## Configuration
 
+The package supports two authentication methods: Basic Authentication and API Token.
+
+### Basic Authentication
+
 ```php
 use Ameax\AmApi\AmApi;
 use Ameax\AmApi\Config\Config;
 
-$config = new Config(
-    apiUrl: 'https://api.example.com',
+$config = Config::withBasicAuth(
+    apiUrl: 'https://YOURDATABASE.ameax.de/api/rest/1.0/',
     username: 'your-username',
     password: 'your-password'
 );
 
 $api = new AmApi($config);
+```
+
+### API Token Authentication
+
+```php
+use Ameax\AmApi\AmApi;
+use Ameax\AmApi\Config\Config;
+
+$config = Config::withApiToken(
+    apiUrl: 'https://YOURDATABASE.ameax.de/api/rest/1.0/',
+    apiToken: 'your-api-token'
+);
+
+$api = new AmApi($config);
+```
+
+### Configuration Options
+
+Both authentication methods support additional options:
+
+```php
+$config = Config::withApiToken(
+    apiUrl: 'https://YOURDATABASE.ameax.de/api/rest/1.0/',
+    apiToken: 'your-api-token',
+    debug: true,  // Enable HTTP debugging
+    httpOptions: [
+        'timeout' => 60,  // Custom timeout
+        'verify' => false  // Disable SSL verification (not recommended for production)
+    ]
+);
 ```
 
 ## Usage Examples

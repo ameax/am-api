@@ -27,16 +27,25 @@ final class AmApiClient
 
     private function createDefaultClient(): GuzzleClient
     {
+        $headers = [
+            'Accept' => 'application/json',
+        ];
+
+        // Add token auth headers if using API token
+        $headers = array_merge($headers, $this->config->getAuthHeaders());
+
         $options = array_merge([
             'base_uri' => $this->config->apiUrl,
-            'auth' => $this->config->getAuth(),
-            'headers' => [
-                'Accept' => 'application/json',
-            ],
+            'headers' => $headers,
             'debug' => $this->config->debug,
             'timeout' => 30,
             'connect_timeout' => 10,
         ], $this->config->httpOptions);
+
+        // Only add basic auth if not using token
+        if ($this->config->isBasicAuth()) {
+            $options['auth'] = $this->config->getAuth();
+        }
 
         return new GuzzleClient($options);
     }
