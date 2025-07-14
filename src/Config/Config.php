@@ -7,6 +7,7 @@ namespace Ameax\AmApi\Config;
 final class Config
 {
     private const AUTH_TYPE_BASIC = 'basic';
+
     private const AUTH_TYPE_TOKEN = 'token';
 
     private function __construct(
@@ -59,7 +60,7 @@ final class Config
     public static function fromArray(array $data): self
     {
         $authType = $data['authType'] ?? self::AUTH_TYPE_BASIC;
-        
+
         if ($authType === self::AUTH_TYPE_TOKEN) {
             return self::withApiToken(
                 apiUrl: $data['apiUrl'],
@@ -68,7 +69,7 @@ final class Config
                 httpOptions: $data['httpOptions'] ?? []
             );
         }
-        
+
         return self::withBasicAuth(
             apiUrl: $data['apiUrl'],
             username: $data['username'],
@@ -114,7 +115,7 @@ final class Config
         if ($this->isBasicAuth()) {
             return [$this->username, $this->password];
         }
-        
+
         return null;
     }
 
@@ -122,10 +123,10 @@ final class Config
     {
         if ($this->isTokenAuth()) {
             return [
-                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Authorization' => 'Bearer '.$this->apiToken,
             ];
         }
-        
+
         return [];
     }
 

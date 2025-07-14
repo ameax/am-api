@@ -106,7 +106,7 @@ class ObjectResource
         return [
             'id' => (int) $result,
             'index_id' => 0,
-            'customer_object_id' => 0
+            'customer_object_id' => 0,
         ];
     }
 

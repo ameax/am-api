@@ -148,3 +148,37 @@ Always throw `ApiException` with descriptive messages when API calls fail.
 ### Authentication
 
 Basic auth credentials are passed via configuration and used in all requests.
+
+### Debugging Raw Responses
+
+The package provides multiple ways to access raw API responses for debugging:
+
+```php
+// Method 1: Via the main API instance
+$api = new AmApi($config);
+$customerId = $api->customers()->add($data);
+
+// Get the raw response immediately after any API call
+$rawResponse = $api->getRawResponse();
+$statusCode = $api->getLastStatusCode();
+
+// Method 2: Direct client access
+$rawResponse = $api->getClient()->getLastRawResponse();
+$statusCode = $api->getClient()->getLastStatusCode();
+
+// Method 3: Enable Guzzle debug mode
+$config = new Config([
+    'url' => 'https://api.example.com',
+    'username' => 'user',
+    'password' => 'pass',
+    'debug' => true  // Enables full HTTP request/response debugging
+]);
+
+// Method 4: Catch exceptions with full response
+try {
+    $result = $api->customers()->add($data);
+} catch (ApiException $e) {
+    $errorResponse = $e->getResponse();  // Contains the full error response
+    $errorMessage = $e->getMessage();
+}
+```

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ameax\AmApi\Traits;
 
 use Ameax\AmApi\Exceptions\ApiException;
+use Ameax\AmApi\Http\AmApiClient;
 
 trait HandlesApiResponses
 {
@@ -35,5 +36,33 @@ trait HandlesApiResponses
         if ($ack === 'error') {
             throw ApiException::fromResponse($response);
         }
+    }
+
+    /**
+     * Get the last raw API response for debugging purposes
+     *
+     * @return array<string, mixed>|null The parsed JSON response from the last API call
+     */
+    protected function getLastRawResponse(): ?array
+    {
+        if (property_exists($this, 'client') && $this->client instanceof AmApiClient) {
+            return $this->client->getLastRawResponse();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the last HTTP status code for debugging purposes
+     *
+     * @return int|null The HTTP status code from the last API call
+     */
+    protected function getLastStatusCode(): ?int
+    {
+        if (property_exists($this, 'client') && $this->client instanceof AmApiClient) {
+            return $this->client->getLastStatusCode();
+        }
+
+        return null;
     }
 }

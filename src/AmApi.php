@@ -263,4 +263,24 @@ class AmApi
     {
         return $this->client;
     }
+
+    /**
+     * Get the last raw API response for debugging purposes
+     *
+     * @return array<string, mixed>|null The parsed JSON response from the last API call
+     */
+    public function getRawResponse(): ?array
+    {
+        return $this->client->getLastRawResponse();
+    }
+
+    /**
+     * Get the last HTTP status code for debugging purposes
+     *
+     * @return int|null The HTTP status code from the last API call
+     */
+    public function getLastStatusCode(): ?int
+    {
+        return $this->client->getLastStatusCode();
+    }
 }
